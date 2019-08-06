@@ -13,22 +13,47 @@ import org.apache.http.util.EntityUtils
 
 import scala.collection.mutable.ListBuffer
 
+/**
+  * Actor that serializes an API conversation and sends over to an HTTP endpoint
+  * @param phaseId the phase ID
+  */
 class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemActor(phaseId : String)  {
 
+  /**
+    * The buffer that will hold multiple documents, when buffer_size > 0
+    */
   var buffer : ListBuffer[Map[String,Any]] = new ListBuffer[Map[String,Any]]
 
+  /**
+    * The buffer size
+    */
   var bufferSize : Int = -1
 
+  /**
+    * The extra headers which need to be attached to the outbound HTTP request
+    */
   var headers : Map[String,Any] = Map.empty[String,Any]
 
+  /**
+    * The HTTP client
+    */
   val httpClient : HttpClient = HttpClients.createDefault()
 
   val objectMapper : ObjectMapper = new ObjectMapper()
 
+  /**
+    * The URL the outbound request should be sent to
+    */
   var url : String = null
 
+  /**
+    * A list of request headers that will not make it to the serialized version
+    */
   var discardRequestHeaders : List[String] = null
 
+  /**
+    * A list of response headers that will not make it to the serialized version
+    */
   var discardResponseHeaders : List[String] = null
 
   override def receive: Receive = {
@@ -38,16 +63,21 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemA
       if(bufferSize > -1)
         buffer+=exportableObject
       if(bufferSize == -1) {
-        log.debug("Buffer size is -1, inserting single document")
+        log.debug("Buffer size is -1, forwarding single document")
         performRequest(Parsers.serializeAsJsonString(exportableObject, pretty = false))
       } else {
         if(buffer.size >= bufferSize) {
+          log.debug("Max buffer size reached, forwarding "+buffer.size+" documents")
           performRequest(Parsers.serializeAsJsonString(buffer.toArray, pretty = false))
           buffer = new ListBuffer[Map[String,Any]]
         }
       }
   }
 
+  /**
+    * Loads the configuration from the phase
+    * @param phase the phase
+    */
   def loadConfig(phase : Phase) = {
     bufferSize = phase.getConfigInt("buffer_size",-1)
     headers = phase.getConfigMap("headers")
@@ -57,6 +87,10 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemA
   }
 
 
+  /**
+    * Performs the outbound HTTP request
+    * @param body the serialized conversation to be forwarded
+    */
   def performRequest(body : String) : Unit = {
     val post = new HttpPost(url)
     for ((k,v) <- headers) post.setHeader(k,v.asInstanceOf[String])
