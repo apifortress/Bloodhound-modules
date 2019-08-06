@@ -2,6 +2,7 @@ package com.apifortress.afthem.modules.fortressforwarders.actors.sidecars.serial
 
 import com.apifortress.afthem.actors.AbstractAfthemActor
 import com.apifortress.afthem.config.Phase
+import com.apifortress.afthem.exceptions.AfthemFlowException
 import com.apifortress.afthem.messages.WebParsedResponseMessage
 import com.apifortress.afthem.{AfthemResponseSerializer, Parsers}
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -58,19 +59,23 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemA
 
   override def receive: Receive = {
     case msg: WebParsedResponseMessage =>
-      loadConfig(getPhase(msg))
-      val exportableObject = AfthemResponseSerializer.toExportableObject(msg,discardRequestHeaders, discardResponseHeaders)
-      if(bufferSize > -1)
-        buffer+=exportableObject
-      if(bufferSize == -1) {
-        log.debug("Buffer size is -1, forwarding single document")
-        performRequest(Parsers.serializeAsJsonString(exportableObject, pretty = false))
-      } else {
-        if(buffer.size >= bufferSize) {
-          log.debug("Max buffer size reached, forwarding "+buffer.size+" documents")
-          performRequest(Parsers.serializeAsJsonString(buffer.toArray, pretty = false))
-          buffer = new ListBuffer[Map[String,Any]]
+      try {
+        loadConfig(getPhase(msg))
+        val exportableObject = AfthemResponseSerializer.toExportableObject(msg,discardRequestHeaders, discardResponseHeaders)
+        if(bufferSize > -1)
+          buffer+=exportableObject
+        if(bufferSize == -1) {
+          log.debug("Buffer size is -1, forwarding single document")
+          performRequest(Parsers.serializeAsJsonString(exportableObject, pretty = false))
+        } else {
+          if (buffer.size >= bufferSize) {
+            log.debug("Max buffer size reached, forwarding " + buffer.size + " documents")
+            performRequest(Parsers.serializeAsJsonString(buffer.toArray, pretty = false))
+            buffer = new ListBuffer[Map[String, Any]]
+          }
         }
+      }catch {
+        case e : Exception => throw new AfthemFlowException(msg,e.getMessage)
       }
   }
 
