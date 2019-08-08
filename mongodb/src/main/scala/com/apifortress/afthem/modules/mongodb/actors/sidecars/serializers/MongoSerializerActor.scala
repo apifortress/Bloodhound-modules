@@ -1,3 +1,19 @@
+/**
+  * Copyright 2019 API Fortress
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+  *
+  * http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  *
+  * @author Simone Pezzano
+  */
 package com.apifortress.afthem.modules.mongodb.actors.sidecars.serializers
 
 import java.util
@@ -12,16 +28,35 @@ import org.mongodb.scala.{Completed, MongoClient, MongoClientSettings, MongoColl
 
 import scala.collection.mutable.ListBuffer
 
-
+/**
+  * Serializes the API conversation on the API Fortress-compatible format and stores it into MongoDB
+  * @param phaseId
+  */
 class MongoSerializerActor(phaseId : String) extends AbstractAfthemActor(phaseId : String) {
 
+  /**
+    * The MongoDB client
+    */
   var client : MongoClient = null
+
+  /**
+    * The MongoDB collection that will store the documents
+    */
   var collection : MongoCollection[Document] = null
 
+  /**
+    * If buffering is activated, this list will store a certain amount of documents waiting to be inserted
+    */
   var buffer : ListBuffer[Document] = new ListBuffer[Document]
 
+  /**
+    * The size of the buffer. -1 means "don't buffer"
+    */
   var bufferSize : Int = -1
 
+  /**
+    * Extra fields that need to be stored in the document
+    */
   var extraFields : Map[String,Any] = null
 
   override def receive: Receive = {
@@ -56,6 +91,9 @@ class MongoSerializerActor(phaseId : String) extends AbstractAfthemActor(phaseId
     }
   }
 
+  /**
+    * Inserts the buffered documents in MongoDB
+    */
   def insertBufferedDocuments : Unit = {
     log.debug("Saving buffered documents to MongoDB")
     val localBuffer = buffer
@@ -71,6 +109,10 @@ class MongoSerializerActor(phaseId : String) extends AbstractAfthemActor(phaseId
     })
   }
 
+  /**
+    * Applies extra fields to a document
+    * @param document
+    */
   def applyExtraFields(document : Document) = {
     if (extraFields.size > 0){
       extraFields.map{ item =>
@@ -84,6 +126,10 @@ class MongoSerializerActor(phaseId : String) extends AbstractAfthemActor(phaseId
     }
   }
 
+  /**
+    * Initizalize the MongoDB client
+    * @param phase the phase
+    */
   def initClient(phase : Phase) = {
     bufferSize = phase.getConfigInt("buffer_size",-1)
     extraFields = phase.getConfigMap("extra_fields")
