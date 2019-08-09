@@ -45,7 +45,7 @@ object TestMongoDbConfigLoader {
     })
   }
 
-  /*@AfterClass
+  @AfterClass
   def cleanup(): Unit = {
     client.getDatabase("afthem").getCollection("test_configuration").drop().subscribe(new Observer[Completed] {
       override def onNext(result: Completed): Unit = {}
@@ -53,7 +53,7 @@ object TestMongoDbConfigLoader {
       override def onComplete(): Unit = {}
     })
     client.close()
-  }*/
+  }
 }
 
 class TestMongoDbConfigLoader {
