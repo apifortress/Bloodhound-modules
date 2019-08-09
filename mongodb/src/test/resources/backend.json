@@ -1,0 +1,6 @@
+{
+  "type" : "backend",
+  "flow_id" : "default",
+  "prefix" : "127.0.0.1:8080/demo",
+  "upstream" : "http://demoapi.apifortress.com/api/retail"
+}

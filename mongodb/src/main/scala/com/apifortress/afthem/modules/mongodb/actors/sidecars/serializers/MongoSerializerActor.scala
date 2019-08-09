@@ -22,6 +22,8 @@ import com.apifortress.afthem.AfthemResponseSerializer
 import com.apifortress.afthem.actors.AbstractAfthemActor
 import com.apifortress.afthem.config.Phase
 import com.apifortress.afthem.messages.WebParsedResponseMessage
+import com.apifortress.afthem.modules.mongodb.MongoDbClientHelper
+import com.mongodb.MongoCredential
 import org.mongodb.scala.bson.BsonTransformer
 import org.mongodb.scala.bson.collection.mutable.Document
 import org.mongodb.scala.{Completed, MongoClient, MongoClientSettings, MongoCollection, Observer, ServerAddress}
@@ -133,14 +135,14 @@ class MongoSerializerActor(phaseId : String) extends AbstractAfthemActor(phaseId
   def initClient(phase : Phase) = {
     bufferSize = phase.getConfigInt("buffer_size",-1)
     extraFields = phase.getConfigMap("extra_fields")
+
+    val username = phase.getConfigString("username",null)
+    val password = phase.getConfigString("password",null)
+    val authDatabase = phase.getConfigString("authDatabase",null)
+
     if(client == null) {
-      val settings = MongoClientSettings.builder()
-        .applyToClusterSettings(builder =>
-          builder.hosts(util.Arrays.asList(new ServerAddress(phase.getConfigString("host"), phase.getConfigInt("port"))))
-        )
-        .codecRegistry(MongoClient.DEFAULT_CODEC_REGISTRY)
-        .build()
-      client = MongoClient(settings)
+      client = MongoDbClientHelper.create(phase.getConfigString("host",null),phase.getConfigInt("port"),
+                                          username,password,authDatabase)
       val db = client.getDatabase(phase.getConfigString("database"))
       db.createCollection(phase.getConfigString("collection"))
       collection = db.getCollection(phase.getConfigString("collection"))

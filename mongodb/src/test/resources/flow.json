@@ -1,0 +1,16 @@
+{
+  "id" : "default",
+  "type" : "flow",
+  "flow" : {
+    "proxy/request" : {
+      "next" : "proxy/upstream_http",
+      "config" : {},
+      "sidecars" : []
+    },
+    "proxy/upstream_http" : {
+      "next" : "proxy/send_back",
+      "config" : {},
+      "sidecars" : []
+    }
+  }
+}
