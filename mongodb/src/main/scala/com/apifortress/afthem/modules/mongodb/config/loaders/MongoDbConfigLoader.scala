@@ -10,9 +10,15 @@ import org.mongodb.scala.bson.collection.immutable.Document
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-
+/**
+  * Loader for configuration stored in MongoDB
+  * @param params MongoDB configuration params
+  */
 class MongoDbConfigLoader(params: Map[String,Any] = null) extends TConfigLoader {
 
+  /**
+    * MongoDB client.
+    */
   val client = MongoDbClientHelper.create(params("host").asInstanceOf[String],
                                           params("port").asInstanceOf[Int],
                                           params.getOrElse("username",null).asInstanceOf[String],

@@ -16,17 +16,14 @@
   */
 package com.apifortress.afthem.modules.mongodb.actors.sidecars.serializers
 
-import java.util
-
 import com.apifortress.afthem.AfthemResponseSerializer
 import com.apifortress.afthem.actors.AbstractAfthemActor
 import com.apifortress.afthem.config.Phase
 import com.apifortress.afthem.messages.WebParsedResponseMessage
 import com.apifortress.afthem.modules.mongodb.MongoDbClientHelper
-import com.mongodb.MongoCredential
 import org.mongodb.scala.bson.BsonTransformer
 import org.mongodb.scala.bson.collection.mutable.Document
-import org.mongodb.scala.{Completed, MongoClient, MongoClientSettings, MongoCollection, Observer, ServerAddress}
+import org.mongodb.scala.{Completed, MongoClient, MongoCollection, Observer}
 
 import scala.collection.mutable.ListBuffer
 
