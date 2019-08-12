@@ -60,7 +60,7 @@ class TestMongoDbConfigLoader {
 
   @Test
   def testBackends(): Unit = {
-    val loader = new MongoDbConfigLoader(Map("host"->"localhost","port"->27017,"collection"->"test_configuration"))
+    val loader = new MongoDbConfigLoader(Map("uri"->"mongodb://localhost", "collection"->"test_configuration"))
     val backends = loader.loadBackends()
     val backend = backends.findByUrl("http://127.0.0.1:8080/demo/product")
     assertTrue(backend.isDefined)
@@ -69,14 +69,14 @@ class TestMongoDbConfigLoader {
 
   @Test
   def testFlows(): Unit = {
-    val loader = new MongoDbConfigLoader(Map("host"->"localhost","port"->27017,"collection"->"test_configuration"))
+    val loader = new MongoDbConfigLoader(Map("uri"->"mongodb://localhost","collection"->"test_configuration"))
     val flow = loader.loadFlow("default")
     assertNotNull(flow)
     assertTrue(flow.keySet().contains("proxy/request"))
   }
   @Test
   def testImplementers(): Unit = {
-    val loader = new MongoDbConfigLoader(Map("host"->"localhost","port"->27017,"collection"->"test_configuration"))
+    val loader = new MongoDbConfigLoader(Map("uri"->"mongodb://localhost","collection"->"test_configuration"))
     val implementers = loader.loadImplementers()
     assertNotNull(implementers)
     assertTrue(implementers.implementers.size>1)

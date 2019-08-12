@@ -133,13 +133,8 @@ class MongoSerializerActor(phaseId : String) extends AbstractAfthemActor(phaseId
     bufferSize = phase.getConfigInt("buffer_size",-1)
     extraFields = phase.getConfigMap("extra_fields")
 
-    val username = phase.getConfigString("username",null)
-    val password = phase.getConfigString("password",null)
-    val authDatabase = phase.getConfigString("authDatabase",null)
-
     if(client == null) {
-      client = MongoDbClientHelper.create(phase.getConfigString("host",null),phase.getConfigInt("port"),
-                                          username,password,authDatabase)
+      client = MongoDbClientHelper.create(phase.getConfigString("uri"))
       val db = client.getDatabase(phase.getConfigString("database"))
       db.createCollection(phase.getConfigString("collection"))
       collection = db.getCollection(phase.getConfigString("collection"))

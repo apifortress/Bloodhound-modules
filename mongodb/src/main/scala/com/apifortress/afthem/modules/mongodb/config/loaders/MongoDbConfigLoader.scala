@@ -19,11 +19,7 @@ class MongoDbConfigLoader(params: Map[String,Any] = null) extends TConfigLoader 
   /**
     * MongoDB client.
     */
-  val client = MongoDbClientHelper.create(params("host").asInstanceOf[String],
-                                          params("port").asInstanceOf[Int],
-                                          params.getOrElse("username",null).asInstanceOf[String],
-                                          params.getOrElse("password",null).asInstanceOf[String],
-                                          params.getOrElse("authDatabase",null).asInstanceOf[String])
+  val client = MongoDbClientHelper.create(params("uri").asInstanceOf[String])
   val db = client.getDatabase("afthem")
   db.createCollection(params.getOrElse("collection","configuration").asInstanceOf[String])
   val collection = db.getCollection(params.getOrElse("collection","configuration").asInstanceOf[String])
