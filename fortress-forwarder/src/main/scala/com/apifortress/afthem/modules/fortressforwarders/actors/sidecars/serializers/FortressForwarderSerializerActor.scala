@@ -69,20 +69,25 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemA
     */
   var discardResponseHeaders : List[String] = null
 
+  var enableOnHeader : String = null
+  var disableOnHeader : String = null
+
   override def receive: Receive = {
     case msg: WebParsedResponseMessage =>
       loadConfig(getPhase(msg))
-      val exportableObject = AfthemResponseSerializer.toExportableObject(msg,discardRequestHeaders, discardResponseHeaders)
-      if(bufferSize > -1)
-        buffer+=exportableObject
-      if(bufferSize == -1) {
-        log.debug("Buffer size is -1, forwarding single document")
-        performRequest(Parsers.serializeAsJsonString(exportableObject, pretty = false))
-      } else {
-        if(buffer.size >= bufferSize) {
-          log.debug("Max buffer size reached, forwarding "+buffer.size+" documents")
-          performRequest(Parsers.serializeAsJsonString(buffer.toArray, pretty = false))
-          buffer = new ListBuffer[Map[String,Any]]
+      if(shouldCapture(msg)) {
+        val exportableObject = AfthemResponseSerializer.toExportableObject(msg, discardRequestHeaders, discardResponseHeaders)
+        if (bufferSize > -1)
+          buffer += exportableObject
+        if (bufferSize == -1) {
+          log.debug("Buffer size is -1, forwarding single document")
+          performRequest(Parsers.serializeAsJsonString(exportableObject, pretty = false))
+        } else {
+          if (buffer.size >= bufferSize) {
+            log.debug("Max buffer size reached, forwarding " + buffer.size + " documents")
+            performRequest(Parsers.serializeAsJsonString(buffer.toArray, pretty = false))
+            buffer = new ListBuffer[Map[String, Any]]
+          }
         }
       }
   }
@@ -97,6 +102,8 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemA
     url = phase.getConfigString("url",null)
     discardRequestHeaders = phase.getConfigList("discard_request_headers")
     discardResponseHeaders = phase.getConfigList("discard_response_headers")
+    enableOnHeader = phase.getConfigString("enable_on_header")
+    disableOnHeader = phase.getConfigString("disable_on_header")
   }
 
 
@@ -112,6 +119,14 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemA
     val response = httpClient.execute(post)
     val respEntity = response.getEntity
     EntityUtils.consumeQuietly(respEntity)
+  }
+
+  def shouldCapture(msg : WebParsedResponseMessage) : Boolean = {
+    if(enableOnHeader != null)
+      return msg.request.getHeader(enableOnHeader) != null
+    if(disableOnHeader != null)
+      return msg.request.getHeader(disableOnHeader) == null
+    return true
   }
 
 }
