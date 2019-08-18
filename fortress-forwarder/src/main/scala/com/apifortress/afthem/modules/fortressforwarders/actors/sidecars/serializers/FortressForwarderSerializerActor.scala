@@ -123,9 +123,9 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemA
 
   def shouldCapture(msg : WebParsedResponseMessage) : Boolean = {
     if(enableOnHeader != null)
-      return msg.request.getHeader(enableOnHeader) != null
+      return msg.request.getHeader(enableOnHeader).isDefined
     if(disableOnHeader != null)
-      return msg.request.getHeader(disableOnHeader) == null
+      return msg.request.getHeader(disableOnHeader).isEmpty
     return true
   }
 
