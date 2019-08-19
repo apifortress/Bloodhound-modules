@@ -47,12 +47,12 @@ object TestMongoDbConfigLoader {
 
   @AfterClass
   def cleanup(): Unit = {
-    client.getDatabase("afthem").getCollection("test_configuration").drop().subscribe(new Observer[Completed] {
+    /*client.getDatabase("afthem").getCollection("test_configuration").drop().subscribe(new Observer[Completed] {
       override def onNext(result: Completed): Unit = {}
       override def onError(e: Throwable) = {}
       override def onComplete(): Unit = {}
     })
-    client.close()
+    client.close()*/
   }
 }
 
@@ -62,9 +62,9 @@ class TestMongoDbConfigLoader {
   def testBackends(): Unit = {
     val loader = new MongoDbConfigLoader(Map("uri"->"mongodb://localhost", "collection"->"test_configuration"))
     val backends = loader.loadBackends()
-    val backend = backends.findByUrl("http://127.0.0.1:8080/demo/product")
+    val backend = backends.findByUrl("http://127.0.0.1/demo/product")
     assertTrue(backend.isDefined)
-    assertEquals("127.0.0.1:8080/demo",backend.get.prefix)
+    assertEquals("127.0.0.1/demo",backend.get.prefix)
   }
 
   @Test
