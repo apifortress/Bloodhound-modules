@@ -58,7 +58,7 @@
         <dependency>
             <groupId>com.apifortress</groupId>
             <artifactId>afthem</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.9.0</version>
             <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.mongodb.scala/mongo-scala-driver -->
