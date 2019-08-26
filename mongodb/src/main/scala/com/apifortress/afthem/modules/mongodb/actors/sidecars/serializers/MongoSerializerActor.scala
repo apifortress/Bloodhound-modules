@@ -17,7 +17,7 @@
 package com.apifortress.afthem.modules.mongodb.actors.sidecars.serializers
 
 import com.apifortress.afthem.AfthemResponseSerializer
-import com.apifortress.afthem.actors.AbstractAfthemActor
+import com.apifortress.afthem.actors.sidecars.serializers.AbstractSerializerActor
 import com.apifortress.afthem.config.Phase
 import com.apifortress.afthem.messages.WebParsedResponseMessage
 import com.apifortress.afthem.modules.mongodb.MongoDbClientHelper
@@ -31,7 +31,7 @@ import scala.collection.mutable.ListBuffer
   * Serializes the API conversation on the API Fortress-compatible format and stores it into MongoDB
   * @param phaseId
   */
-class MongoSerializerActor(phaseId : String) extends AbstractAfthemActor(phaseId : String) {
+class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(phaseId : String) {
 
   /**
     * The MongoDB client
@@ -60,26 +60,31 @@ class MongoSerializerActor(phaseId : String) extends AbstractAfthemActor(phaseId
 
   override def receive: Receive = {
     case msg: WebParsedResponseMessage =>
-        initClient(getPhase(msg))
+      val phase = getPhase(msg)
+      loadConfig(phase)
+      initClient(phase)
+      if(shouldCapture(msg)) {
         val exportableObject = AfthemResponseSerializer.serialize(msg)
         val document = Document(exportableObject)
         applyExtraFields(document)
-        if(bufferSize > -1)
-          buffer+=document
-        if(bufferSize == -1) {
+        if (bufferSize > -1)
+          buffer += document
+        if (bufferSize == -1) {
           log.debug("Buffer size is -1, inserting single document")
           collection.insertOne(document).subscribe(new Observer[Completed] {
             override def onNext(result: Completed): Unit = {}
 
             override def onError(e: Throwable) = {
-              log.error("Cannot save single document to MongoDB",e)
+              log.error("Cannot save single document to MongoDB", e)
             }
+
             override def onComplete(): Unit = {}
           })
         } else {
-          if(buffer.size >= bufferSize)
-           insertBufferedDocuments
+          if (buffer.size >= bufferSize)
+            insertBufferedDocuments
         }
+      }
   }
 
   override def postStop(): Unit = {
