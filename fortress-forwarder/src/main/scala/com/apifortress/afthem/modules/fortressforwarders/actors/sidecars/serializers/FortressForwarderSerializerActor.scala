@@ -16,7 +16,7 @@
   */
 package com.apifortress.afthem.modules.fortressforwarders.actors.sidecars.serializers
 
-import com.apifortress.afthem.actors.AbstractAfthemActor
+import com.apifortress.afthem.actors.sidecars.serializers.AbstractSerializerActor
 import com.apifortress.afthem.config.Phase
 import com.apifortress.afthem.messages.WebParsedResponseMessage
 import com.apifortress.afthem.{AfthemResponseSerializer, Parsers}
@@ -32,7 +32,7 @@ import scala.collection.mutable.ListBuffer
   * Actor that serializes an API conversation and sends over to an HTTP endpoint
   * @param phaseId the phase ID
   */
-class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemActor(phaseId : String)  {
+class FortressForwarderSerializerActor(phaseId : String) extends AbstractSerializerActor(phaseId : String)  {
 
   /**
     * The buffer that will hold multiple documents, when buffer_size > 0
@@ -59,19 +59,6 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemA
     */
   var url : String = null
 
-  /**
-    * A list of request headers that will not make it to the serialized version
-    */
-  var discardRequestHeaders : List[String] = null
-
-  /**
-    * A list of response headers that will not make it to the serialized version
-    */
-  var discardResponseHeaders : List[String] = null
-
-  var enableOnHeader : String = null
-  var disableOnHeader : String = null
-
   override def receive: Receive = {
     case msg: WebParsedResponseMessage =>
       loadConfig(getPhase(msg))
@@ -96,14 +83,11 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemA
     * Loads the configuration from the phase
     * @param phase the phase
     */
-  def loadConfig(phase : Phase) = {
+  override def loadConfig(phase : Phase) = {
+    super.loadConfig(phase)
     bufferSize = phase.getConfigInt("buffer_size",-1)
     headers = phase.getConfigMap("headers")
     url = phase.getConfigString("url",null)
-    discardRequestHeaders = phase.getConfigList("discard_request_headers")
-    discardResponseHeaders = phase.getConfigList("discard_response_headers")
-    enableOnHeader = phase.getConfigString("enable_on_header")
-    disableOnHeader = phase.getConfigString("disable_on_header")
   }
 
 
@@ -119,14 +103,6 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractAfthemA
     val response = httpClient.execute(post)
     val respEntity = response.getEntity
     EntityUtils.consumeQuietly(respEntity)
-  }
-
-  def shouldCapture(msg : WebParsedResponseMessage) : Boolean = {
-    if(enableOnHeader != null)
-      return msg.request.getHeader(enableOnHeader)!=null
-    if(disableOnHeader != null)
-      return msg.request.getHeader(disableOnHeader)==null
-    return true
   }
 
 }
