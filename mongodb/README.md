@@ -139,8 +139,9 @@ the list is null or empty, all content types will be accepted
 
 Extra serializer settings:
 
-* `buffer_size`: the serialize can buffer a number of conversations and save them once the buffer is full to improve
-DB communication performance
+* `buffer_size`: the serializer can buffer a number of conversations and save them once the buffer is full to improve
+DB communication performance. If absent or if the value is less than 1, the document is inserted as asson as the actor
+receives it 
 * `extra_fields`: a map of k/v fields that should be added to the document.
 
 MongoDB settings:
