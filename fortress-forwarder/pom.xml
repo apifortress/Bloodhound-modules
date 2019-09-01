@@ -59,7 +59,7 @@
         <dependency>
             <groupId>com.apifortress</groupId>
             <artifactId>afthem</artifactId>
-            <version>0.9.0</version>
+            <version>0.11.0</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
