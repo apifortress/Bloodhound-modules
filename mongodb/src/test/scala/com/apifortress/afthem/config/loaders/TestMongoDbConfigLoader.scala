@@ -47,12 +47,12 @@ object TestMongoDbConfigLoader {
 
   @AfterClass
   def cleanup(): Unit = {
-    /*client.getDatabase("afthem").getCollection("test_configuration").drop().subscribe(new Observer[Completed] {
+    client.getDatabase("afthem").getCollection("test_configuration").drop().subscribe(new Observer[Completed] {
       override def onNext(result: Completed): Unit = {}
       override def onError(e: Throwable) = {}
       override def onComplete(): Unit = {}
     })
-    client.close()*/
+    client.close()
   }
 }
 
