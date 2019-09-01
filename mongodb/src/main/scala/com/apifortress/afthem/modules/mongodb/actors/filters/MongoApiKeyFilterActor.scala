@@ -1,6 +1,6 @@
 package com.apifortress.afthem.modules.mongodb.actors.filters
 
-import com.apifortress.afthem.actors.filters.ApiKeyFilter
+import com.apifortress.afthem.actors.filters.ApiKeyFilterActor
 import com.apifortress.afthem.config.{ApiKey, Phase}
 import com.apifortress.afthem.messages.{WebParsedRequestMessage, WebParsedResponseMessage}
 import com.apifortress.afthem.modules.mongodb.MongoDbClientHelper
@@ -11,7 +11,7 @@ import org.mongodb.scala.{MongoClient, MongoCollection}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class MongoApiKeyFilterActor(phaseId : String) extends MongoApiKeyFilterActor(phaseId : String) {
+class MongoApiKeyFilterActor(phaseId : String) extends ApiKeyFilterActor(phaseId : String) {
 
 
   private var client : MongoClient = null
