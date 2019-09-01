@@ -11,7 +11,7 @@ import org.mongodb.scala.{MongoClient, MongoCollection}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-class MongoApiKeyFilter(phaseId : String) extends ApiKeyFilter(phaseId : String) {
+class MongoApiKeyFilterActor(phaseId : String) extends ApiKeyFilter(phaseId : String) {
 
 
   private var client : MongoClient = null
