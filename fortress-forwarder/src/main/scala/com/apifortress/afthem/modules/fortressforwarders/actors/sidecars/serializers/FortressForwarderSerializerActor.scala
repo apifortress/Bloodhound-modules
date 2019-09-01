@@ -64,9 +64,9 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractSeriali
       loadConfig(getPhase(msg))
       if(shouldCapture(msg)) {
         val exportableObject = AfthemResponseSerializer.toExportableObject(msg, discardRequestHeaders, discardResponseHeaders)
-        if (bufferSize > -1)
+        if (bufferSize > 1)
           buffer += exportableObject
-        if (bufferSize == -1) {
+        if (bufferSize <= 1) {
           log.debug("Buffer size is -1, forwarding single document")
           performRequest(Parsers.serializeAsJsonString(exportableObject, pretty = false))
         } else {
