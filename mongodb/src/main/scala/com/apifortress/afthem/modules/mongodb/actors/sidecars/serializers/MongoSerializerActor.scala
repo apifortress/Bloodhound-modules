@@ -20,10 +20,10 @@ import com.apifortress.afthem.AfthemResponseSerializer
 import com.apifortress.afthem.actors.sidecars.serializers.AbstractSerializerActor
 import com.apifortress.afthem.config.Phase
 import com.apifortress.afthem.messages.WebParsedResponseMessage
-import com.apifortress.afthem.modules.mongodb.MongoDbClientHelper
+import com.apifortress.afthem.modules.mongodb.actors.TMongoDBActor
+import org.bson.Document
 import org.mongodb.scala.bson.BsonTransformer
-import org.mongodb.scala.bson.collection.mutable.Document
-import org.mongodb.scala.{Completed, MongoClient, MongoCollection, Observer}
+import org.mongodb.scala.{Completed, Observer}
 
 import scala.collection.mutable.ListBuffer
 
@@ -31,17 +31,7 @@ import scala.collection.mutable.ListBuffer
   * Serializes the API conversation on the API Fortress-compatible format and stores it into MongoDB
   * @param phaseId
   */
-class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(phaseId : String) {
-
-  /**
-    * The MongoDB client
-    */
-  var client : MongoClient = null
-
-  /**
-    * The MongoDB collection that will store the documents
-    */
-  var collection : MongoCollection[Document] = null
+class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(phaseId : String) with TMongoDBActor {
 
   /**
     * If buffering is activated, this list will store a certain amount of documents waiting to be inserted
@@ -65,7 +55,7 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
       initClient(phase)
       if(shouldCapture(msg)) {
         val exportableObject = AfthemResponseSerializer.serialize(msg,discardRequestHeaders,discardResponseHeaders)
-        val document = Document(exportableObject)
+        val document = Document.parse(exportableObject)
         applyExtraFields(document)
         if (bufferSize > 1)
           buffer += document
@@ -134,15 +124,9 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
     * Initizalize the MongoDB client
     * @param phase the phase
     */
-  def initClient(phase : Phase) = {
+  override def initClient(phase : Phase) = {
     bufferSize = phase.getConfigInt("buffer_size",-1)
     extraFields = phase.getConfigMap("extra_fields")
-
-    if(client == null) {
-      client = MongoDbClientHelper.create(phase.getConfigString("uri"))
-      val db = client.getDatabase(phase.getConfigString("database"))
-      db.createCollection(phase.getConfigString("collection"))
-      collection = db.getCollection(phase.getConfigString("collection"))
-    }
+    super.initClient(phase)
   }
 }

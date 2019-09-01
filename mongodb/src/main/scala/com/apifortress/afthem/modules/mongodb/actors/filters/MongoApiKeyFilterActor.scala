@@ -18,11 +18,9 @@ package com.apifortress.afthem.modules.mongodb.actors.filters
 
 import com.apifortress.afthem.actors.filters.ApiKeyFilterActor
 import com.apifortress.afthem.config.{ApiKey, Phase}
-import com.apifortress.afthem.messages.{WebParsedRequestMessage, WebParsedResponseMessage}
-import com.apifortress.afthem.modules.mongodb.MongoDbClientHelper
+import com.apifortress.afthem.messages.WebParsedRequestMessage
+import com.apifortress.afthem.modules.mongodb.actors.TMongoDBActor
 import com.mongodb.client.model.Filters
-import org.bson.Document
-import org.mongodb.scala.{MongoClient, MongoCollection}
 
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
@@ -31,33 +29,12 @@ import scala.concurrent.duration.Duration
   * Actor to filter requests based on an API key. API keys are stored in MongoDB
   * @param phaseId
   */
-class MongoApiKeyFilterActor(phaseId : String) extends ApiKeyFilterActor(phaseId : String) {
-
-
-  /**
-    * The MongoDB client
-    */
-  private var client : MongoClient = null
-
-  /**
-    * The Collection that stores the API keys
-    */
-  private var collection : MongoCollection[Document] = null
-
+class MongoApiKeyFilterActor(phaseId : String) extends ApiKeyFilterActor(phaseId : String) with TMongoDBActor {
 
   override def receive: Receive = {
     case msg: WebParsedRequestMessage =>
       initClient(getPhase(msg))
       super.receive(msg)
-  }
-
-  def initClient(phase : Phase) = {
-    if(client == null) {
-      client = MongoDbClientHelper.create(phase.getConfigString("uri"))
-      val db = client.getDatabase(phase.getConfigString("database"))
-      db.createCollection(phase.getConfigString("collection"))
-      collection = db.getCollection(phase.getConfigString("collection"))
-    }
   }
 
   override def findKey(key: String, phase: Phase): Option[ApiKey] = {
