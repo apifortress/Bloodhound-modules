@@ -64,7 +64,7 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
       loadConfig(phase)
       initClient(phase)
       if(shouldCapture(msg)) {
-        val exportableObject = AfthemResponseSerializer.serialize(msg)
+        val exportableObject = AfthemResponseSerializer.serialize(msg,discardRequestHeaders,discardResponseHeaders)
         val document = Document(exportableObject)
         applyExtraFields(document)
         if (bufferSize > -1)
