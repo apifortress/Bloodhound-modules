@@ -67,9 +67,9 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
         val exportableObject = AfthemResponseSerializer.serialize(msg,discardRequestHeaders,discardResponseHeaders)
         val document = Document(exportableObject)
         applyExtraFields(document)
-        if (bufferSize > -1)
+        if (bufferSize > 1)
           buffer += document
-        if (bufferSize == -1) {
+        if (bufferSize <= -1) {
           log.debug("Buffer size is -1, inserting single document")
           collection.insertOne(document).subscribe(new Observer[Completed] {
             override def onNext(result: Completed): Unit = {}
