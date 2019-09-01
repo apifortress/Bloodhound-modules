@@ -107,6 +107,16 @@ This base actor loads the API keys from a YAML file.
 * `in`: either `query` (expecting the key in the query string) or `header` (expecting the key in the headers)
 * `name`: key of the field carrying the API key
 
+
+**Example document**
+```json
+{
+    "api_key" : "123",
+    "app_id" : "TheFoobar",
+    "enabled" : true
+}
+```
+
 ---
 ## Sidecars
 
