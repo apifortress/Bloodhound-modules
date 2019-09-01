@@ -6,7 +6,7 @@
 
     <groupId>com.apifortress.afthem.modules</groupId>
     <artifactId>mongodb</artifactId>
-    <version>0.9.0</version>
+    <version>0.11.0</version>
 
 
     <build>
