@@ -137,6 +137,12 @@ General serializer settings:
 * `allow_content_types`: full or partial response content types which make the request eligible for serialization. If
 the list is null or empty, all content types will be accepted
 
+Extra serializer settings:
+
+* `buffer_size`: the serialize can buffer a number of conversations and save them once the buffer is full to improve
+DB communication performance
+* `extra_fields`: a map of k/v fields that should be added to the document.
+
 MongoDB settings:
 
 * `uri`: the MongoDB URI
