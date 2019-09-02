@@ -19,11 +19,11 @@ package com.apifortress.afthem.modules.fortressforwarders.actors.sidecars.serial
 import com.apifortress.afthem.actors.sidecars.serializers.AbstractSerializerActor
 import com.apifortress.afthem.config.Phase
 import com.apifortress.afthem.messages.WebParsedResponseMessage
-import com.apifortress.afthem.{AfthemResponseSerializer, Parsers}
-import org.apache.http.client.HttpClient
+import com.apifortress.afthem.{AfthemHttpClient, AfthemResponseSerializer, Parsers}
+import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpPost
+import org.apache.http.concurrent.FutureCallback
 import org.apache.http.entity.StringEntity
-import org.apache.http.impl.client.HttpClients
 import org.apache.http.util.EntityUtils
 
 import scala.collection.mutable.ListBuffer
@@ -48,11 +48,6 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractSeriali
     * The extra headers which need to be attached to the outbound HTTP request
     */
   var headers : Map[String,Any] = Map.empty[String,Any]
-
-  /**
-    * The HTTP client
-    */
-  val httpClient : HttpClient = HttpClients.createDefault()
 
   /**
     * The URL the outbound request should be sent to
@@ -100,9 +95,16 @@ class FortressForwarderSerializerActor(phaseId : String) extends AbstractSeriali
     for ((k,v) <- headers) post.setHeader(k,v.asInstanceOf[String])
     post.setHeader("content-type","application/json")
     post.setEntity(new StringEntity(body))
-    val response = httpClient.execute(post)
-    val respEntity = response.getEntity
-    EntityUtils.consumeQuietly(respEntity)
+    AfthemHttpClient.execute(post,new FutureCallback[HttpResponse] {
+      override def completed(t: HttpResponse): Unit = {
+        EntityUtils.consume(t.getEntity)
+        getLog.debug("Serialized API conversation forwarded")
+      }
+      override def failed(e: Exception): Unit = {
+        getLog.error("Something went wrong during forwarding", e)
+      }
+      override def cancelled(): Unit = {}
+    })
   }
-
 }
+
