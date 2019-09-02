@@ -17,9 +17,12 @@
 package com.apifortress.afthem.modules.mongodb.actors
 
 import com.apifortress.afthem.config.Phase
-import com.apifortress.afthem.modules.mongodb.MongoDbClientHelper
+import com.mongodb.ConnectionString
 import org.bson.Document
-import org.mongodb.scala.{MongoClient, MongoCollection}
+import org.mongodb.scala.{Completed, MongoClient, MongoClientSettings, MongoCollection, Observer}
+import org.slf4j.Logger
+
+import scala.collection.mutable.ListBuffer
 
 /**
   * Common trait for all MongoDB Actors
@@ -36,13 +39,63 @@ trait TMongoDBActor {
     */
   protected var collection : MongoCollection[Document] = null
 
-  def initClient(phase : Phase) = {
+  def getLog() : Logger
+
+  /**
+    * Initializes the MongoClient, if the client hasn't been initialized already
+    * @param phase the phase
+    */
+  def initClient(phase : Phase) : Unit = {
+    initClient(phase.getConfigString("uri"),
+                phase.getConfigString("database"),
+                phase.getConfigString("collection"))
+  }
+
+  def initClient(uri : String, database : String = "afthem", collection : String = "configuration") : Unit = {
     if(client == null) {
-      client = MongoDbClientHelper.create(phase.getConfigString("uri"))
-      val db = client.getDatabase(phase.getConfigString("database"))
-      db.createCollection(phase.getConfigString("collection"))
-      collection = db.getCollection(phase.getConfigString("collection"))
+      client = MongoClient(MongoClientSettings.builder()
+                            .applyConnectionString(new ConnectionString(uri))
+                            .codecRegistry(MongoClient.DEFAULT_CODEC_REGISTRY).build())
+      val db = client.getDatabase(database)
+      db.createCollection(collection)
+      this.collection = db.getCollection(collection)
     }
+  }
+
+  /**
+    * Inserts a document
+    * @param document a document
+    */
+  def insertSingleDocument(document : Document) = {
+    getLog.debug("Buffer size is -1, inserting single document")
+    collection.insertOne(document)  .subscribe(new Observer[Completed] {
+      override def onNext(result: Completed): Unit = {}
+
+      override def onError(e: Throwable) = {
+        getLog.error("Cannot save single document to MongoDB", e)
+      }
+
+      override def onComplete(): Unit = {
+        getLog.debug("Document saved to MongoDB")
+      }
+    })
+  }
+
+  /**
+    * Inserts a buffer of documents
+    * @param documents a buffer of documents
+    */
+  def insertManyDocuments(documents : ListBuffer[Document]) = {
+    collection.insertMany(documents).subscribe(new Observer[Completed] {
+      override def onNext(result: Completed): Unit = {}
+
+      override def onError(e: Throwable): Unit = {
+        getLog.error("Cannot save multiple documents to MongoDB",e)
+      }
+      override def onComplete(): Unit = {
+        getLog.debug("Documents saved to MongoDB")
+      }
+    })
   }
 
 }

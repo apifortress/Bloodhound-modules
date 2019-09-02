@@ -23,7 +23,6 @@ import com.apifortress.afthem.messages.WebParsedResponseMessage
 import com.apifortress.afthem.modules.mongodb.actors.TMongoDBActor
 import org.bson.Document
 import org.mongodb.scala.bson.BsonTransformer
-import org.mongodb.scala.{Completed, Observer}
 
 import scala.collection.mutable.ListBuffer
 
@@ -59,17 +58,9 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
         applyExtraFields(document)
         if (bufferSize > 1)
           buffer += document
-        if (bufferSize <= -1) {
-          log.debug("Buffer size is -1, inserting single document")
-          collection.insertOne(document).subscribe(new Observer[Completed] {
-            override def onNext(result: Completed): Unit = {}
-
-            override def onError(e: Throwable) = {
-              log.error("Cannot save single document to MongoDB", e)
-            }
-
-            override def onComplete(): Unit = {}
-          })
+        if (bufferSize <= 1) {
+          log.debug("Inserting single document")
+          insertSingleDocument(document)
         } else {
           if (buffer.size >= bufferSize)
             insertBufferedDocuments
@@ -80,7 +71,7 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
   override def postStop(): Unit = {
     super.postStop()
     if(buffer.size > 0) {
-      log.debug("Buffer is dirty. Saving items to MongoDB")
+      log.debug("Buffer is full. Saving items to MongoDB")
       insertBufferedDocuments
     }
   }
@@ -92,15 +83,7 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
     log.debug("Saving buffered documents to MongoDB")
     val localBuffer = buffer
     buffer = new ListBuffer[Document]
-    collection.insertMany(localBuffer).subscribe(new Observer[Completed] {
-      override def onNext(result: Completed): Unit = {}
-
-      override def onError(e: Throwable): Unit = {
-        log.error("Cannot save multiple documents to MongoDB",e)
-      }
-
-      override def onComplete(): Unit = {}
-    })
+    insertManyDocuments(localBuffer)
   }
 
   /**
