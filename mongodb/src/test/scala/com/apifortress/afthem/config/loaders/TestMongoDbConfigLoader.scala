@@ -3,9 +3,11 @@ package com.apifortress.afthem.config.loaders
 import java.util
 
 import com.apifortress.afthem.modules.mongodb.config.loaders.MongoDbConfigLoader
+import javax.servlet.http.HttpServletRequest
 import org.apache.commons.io.IOUtils
-import org.junit._
 import org.junit.Assert._
+import org.junit._
+import org.mockito.Mockito._
 import org.mongodb.scala.bson.collection.immutable.Document
 import org.mongodb.scala.{Completed, MongoClient, MongoClientSettings, Observer, ServerAddress}
 
@@ -60,9 +62,11 @@ class TestMongoDbConfigLoader {
 
   @Test
   def testBackends(): Unit = {
+    val request = mock(classOf[HttpServletRequest])
+    when(request.getRequestURL).thenReturn(new StringBuffer("http://127.0.0.1/demo/product"))
     val loader = new MongoDbConfigLoader(Map("uri"->"mongodb://localhost", "collection"->"test_configuration"))
     val backends = loader.loadBackends()
-    val backend = backends.findByUrl("http://127.0.0.1/demo/product")
+    val backend = backends.findByRequest(request)
     assertTrue(backend.isDefined)
     assertEquals("127.0.0.1/demo",backend.get.prefix)
   }
