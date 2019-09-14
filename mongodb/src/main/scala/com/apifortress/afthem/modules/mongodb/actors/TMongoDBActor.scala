@@ -51,6 +51,12 @@ trait TMongoDBActor {
                 phase.getConfigString("collection"))
   }
 
+  /**
+    * Initializes the MongoClient, if the client hasn't been initialized already
+    * @param uri the URI of the MongoDB server
+    * @param database the database to be used
+    * @param collection the collection to be used
+    */
   def initClient(uri : String, database : String = "afthem", collection : String = "configuration") : Unit = {
     if(client == null) {
       client = MongoClient(MongoClientSettings.builder()
@@ -68,7 +74,7 @@ trait TMongoDBActor {
     */
   def insertSingleDocument(document : Document) = {
     getLog.debug("Buffer size is -1, inserting single document")
-    collection.insertOne(document)  .subscribe(new Observer[Completed] {
+    collection.insertOne(document).subscribe(new Observer[Completed] {
       override def onNext(result: Completed): Unit = {}
 
       override def onError(e: Throwable) = {

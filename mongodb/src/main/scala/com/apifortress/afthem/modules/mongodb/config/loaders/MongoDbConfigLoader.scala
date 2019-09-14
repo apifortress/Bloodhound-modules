@@ -26,7 +26,9 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
-
+/**
+  * MongoDB-based config loader
+  */
 object MongoDbConfigLoader {
 
   val log = LoggerFactory.getLogger(MongoDbConfigLoader.getClass)
