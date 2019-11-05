@@ -47,9 +47,9 @@ class FortressLiveTestingActor(phaseId : String) extends AbstractSerializerActor
     case msg: WebParsedResponseMessage =>
       loadConfig(getPhase(msg))
       if(shouldCapture(msg)){
-        val exportableObject = serializeObject(msg)
         url = SpelEvaluator.evaluateStringIfNeeded(url,Map("msg"->msg))
         params = SpelEvaluator.evaluateStringIfNeeded(params,Map("msg"->msg))
+        val exportableObject = serializeObject(msg)
         performRequest(Parsers.serializeAsJsonString(exportableObject, pretty = false))
       }
   }
