@@ -112,4 +112,13 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
     extraFields = phase.getConfigMap("extra_fields")
     super.initClient(phase)
   }
+
+  override def postStop(): Unit = {
+    super.postStop()
+    if(buffer.size > 0) {
+      log.debug("Buffer is full. Saving items to MongoDB")
+      insertManyDocuments(buffer)
+    }
+    client.close()
+  }
 }
