@@ -27,7 +27,7 @@ import org.mongodb.scala.bson.BsonTransformer
 import scala.collection.mutable.ListBuffer
 
 /**
-  * Serializes the API conversation on the API Fortress-compatible format and stores it into MongoDB
+  * Serializes the API conversation in the API Fortress-compatible format and stores it into MongoDB
   * @param phaseId
   */
 class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(phaseId : String) with TMongoDBActor {
