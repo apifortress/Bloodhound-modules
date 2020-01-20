@@ -31,10 +31,7 @@ import scala.collection.mutable
   */
 object UpstreamJdbcActor {
 
-  def isEdit(query : String) : Boolean = {
-    var lQuery = query.toLowerCase.trim
-    return lQuery.startsWith("update") || lQuery.startsWith("insert")
-  }
+  def isSelect(query : String) : Boolean = query.toLowerCase.trim.startsWith("select")
 
   def resultSetToArray(resultSet : ResultSet) : List[Map[String,Any]] = {
     val columnCount = resultSet.getMetaData.getColumnCount
@@ -71,17 +68,17 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
         statement.setMaxRows(maxRows)
         statement.closeOnCompletion()
         val query = msg.request.getPayloadAsText()
-        val wrapper: HttpWrapper = if (UpstreamJdbcActor.isEdit(query)) {
-          val status = statement.execute(query)
-          new HttpWrapper(msg.request.getURL(), 200, "POST",
-            List(new Header(ReqResUtil.HEADER_CONTENT_TYPE, ReqResUtil.MIME_JSON)),
-            ("{\"status\":" + status + "}").getBytes(ReqResUtil.CHARSET_UTF8),
-            null, ReqResUtil.CHARSET_UTF8)
-        } else {
+        val wrapper: HttpWrapper = if (UpstreamJdbcActor.isSelect(query)) {
           val data = UpstreamJdbcActor.resultSetToArray(statement.executeQuery(query))
           new HttpWrapper(msg.request.getURL(), 200, "POST",
             List(new Header(ReqResUtil.HEADER_CONTENT_TYPE, ReqResUtil.MIME_JSON)),
             Parsers.serializeAsJsonString(data, true).getBytes(ReqResUtil.CHARSET_UTF8),
+            null, ReqResUtil.CHARSET_UTF8)
+        } else {
+          val status = statement.execute(query)
+          new HttpWrapper(msg.request.getURL(), 200, "POST",
+            List(new Header(ReqResUtil.HEADER_CONTENT_TYPE, ReqResUtil.MIME_JSON)),
+            ("{\"status\":" + status + "}").getBytes(ReqResUtil.CHARSET_UTF8),
             null, ReqResUtil.CHARSET_UTF8)
         }
         val message = new WebParsedResponseMessage(wrapper, msg.request, msg.backend, msg.flow, msg.deferredResult,
