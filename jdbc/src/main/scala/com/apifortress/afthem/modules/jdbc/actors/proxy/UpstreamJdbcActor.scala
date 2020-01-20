@@ -17,6 +17,7 @@
 package com.apifortress.afthem.modules.jdbc.actors.proxy
 
 import java.sql.{Connection, DriverManager, ResultSet}
+import java.util.Properties
 
 import com.apifortress.afthem.{Parsers, ReqResUtil}
 import com.apifortress.afthem.actors.AbstractAfthemActor
@@ -75,10 +76,10 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
             Parsers.serializeAsJsonString(data, true).getBytes(ReqResUtil.CHARSET_UTF8),
             null, ReqResUtil.CHARSET_UTF8)
         } else {
-          val status = statement.execute(query)
+          statement.execute(query)
           new HttpWrapper(msg.request.getURL(), 200, "POST",
             List(new Header(ReqResUtil.HEADER_CONTENT_TYPE, ReqResUtil.MIME_JSON)),
-            ("{\"status\":" + status + "}").getBytes(ReqResUtil.CHARSET_UTF8),
+            ("{\"status\":\"ok\"}").getBytes(ReqResUtil.CHARSET_UTF8),
             null, ReqResUtil.CHARSET_UTF8)
         }
         val message = new WebParsedResponseMessage(wrapper, msg.request, msg.backend, msg.flow, msg.deferredResult,
@@ -94,7 +95,14 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
     if (conn == null) {
       val phase = getPhase(msg)
       Class.forName(phase.getConfigString("driver"))
-      conn = DriverManager.getConnection(phase.getConfigString("url"))
+      val cProps = phase.getConfigMap("properties")
+      conn = if (cProps != null) {
+              val properties = new Properties()
+              cProps.foreach(it => properties.put(it._1, it._2.toString))
+              DriverManager.getConnection(phase.getConfigString("url"), properties)
+            } else
+                DriverManager.getConnection(phase.getConfigString("url"))
+
       maxRows = phase.getConfigInt("max_rows",100)
     }
   }
