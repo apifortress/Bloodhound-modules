@@ -56,7 +56,7 @@ object UpstreamJdbcActor {
       }
       theList += map.toMap
     }
-    return theList.toList
+    theList.toList
   }
 
 }
@@ -71,7 +71,7 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
   /**
     * The JDBC connection
     */
-  private var conn : Connection = null
+  private var conn : Connection = _
 
   /**
     * The maximum number of returned rows
@@ -90,13 +90,13 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
           val data = UpstreamJdbcActor.resultSetToArray(statement.executeQuery(query))
           new HttpWrapper(msg.request.getURL(), 200, "POST",
             List(new Header(ReqResUtil.HEADER_CONTENT_TYPE, ReqResUtil.MIME_JSON)),
-            Parsers.serializeAsJsonByteArray(data, true),
+            Parsers.serializeAsJsonByteArray(data, pretty = true),
             null, ReqResUtil.CHARSET_UTF8)
         } else {
           statement.execute(query)
           new HttpWrapper(msg.request.getURL(), 200, "POST",
             List(new Header(ReqResUtil.HEADER_CONTENT_TYPE, ReqResUtil.MIME_JSON)),
-            ("{\"status\":\"ok\"}").getBytes(ReqResUtil.CHARSET_UTF8),
+            "{\"status\":\"ok\"}".getBytes(ReqResUtil.CHARSET_UTF8),
             null, ReqResUtil.CHARSET_UTF8)
         }
         val message = new WebParsedResponseMessage(wrapper, msg.request, msg.backend, msg.flow, msg.deferredResult,

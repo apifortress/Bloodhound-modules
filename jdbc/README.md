@@ -15,5 +15,5 @@ An upstream actor that acts as a backend for a route.
 **configuration:**
 
 * `url`: a JDBC url, such as `jdbc:postgresql://localhost:5432/mydb?user=john&password=111aa`
-* `driver`: the fully qualitified path of the jdbc driver, such as `org.postgresql.Driver`
+* `driver`: the fully qualified path of the jdbc driver, such as `org.postgresql.Driver`
 * `max_rows`: a limiter to the number of returned rows. Default: `100`
