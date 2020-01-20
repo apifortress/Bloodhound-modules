@@ -32,8 +32,18 @@ import scala.collection.mutable
   */
 object UpstreamJdbcActor {
 
+  /**
+    * Determines whether the query is a 'select' or not
+    * @param query the query
+    * @return true if the query is a 'select'
+    */
   def isSelect(query : String) : Boolean = query.toLowerCase.trim.startsWith("select")
 
+  /**
+    * Iterates over a Result Set and creates a list of maps representing the whole result set
+    * @param resultSet a result set
+    * @return a list of maps representing the whole result set
+    */
   def resultSetToArray(resultSet : ResultSet) : List[Map[String,Any]] = {
     val columnCount = resultSet.getMetaData.getColumnCount
     val theList = mutable.MutableList[Map[String,Any]]()
@@ -58,7 +68,14 @@ object UpstreamJdbcActor {
 class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: String) {
 
 
+  /**
+    * The JDBC connection
+    */
   private var conn : Connection = null
+
+  /**
+    * The maximum number of returned rows
+    */
   private var maxRows : Int = 100
 
   override def receive: Receive = {
@@ -73,7 +90,7 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
           val data = UpstreamJdbcActor.resultSetToArray(statement.executeQuery(query))
           new HttpWrapper(msg.request.getURL(), 200, "POST",
             List(new Header(ReqResUtil.HEADER_CONTENT_TYPE, ReqResUtil.MIME_JSON)),
-            Parsers.serializeAsJsonString(data, true).getBytes(ReqResUtil.CHARSET_UTF8),
+            Parsers.serializeAsJsonByteArray(data, true),
             null, ReqResUtil.CHARSET_UTF8)
         } else {
           statement.execute(query)
@@ -91,6 +108,10 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
   }
 
 
+  /**
+    * Loads the config and initializes the JDBC connection
+    * @param msg a WebParsedRequestMessage
+    */
   def loadConfig(msg : WebParsedRequestMessage): Unit = {
     if (conn == null) {
       val phase = getPhase(msg)
