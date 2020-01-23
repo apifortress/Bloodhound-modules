@@ -16,7 +16,7 @@
   */
 package com.apifortress.afthem.modules.rabbitmq.actors.sidecars.serializers
 
-import com.apifortress.afthem.AfthemResponseSerializer
+import com.apifortress.afthem.{AfthemResponseSerializer, Metric}
 import com.apifortress.afthem.actors.sidecars.serializers.AbstractSerializerActor
 import com.apifortress.afthem.config.Phase
 import com.apifortress.afthem.messages.WebParsedResponseMessage
@@ -50,11 +50,13 @@ class RabbitSerializerActor(phaseId : String) extends AbstractSerializerActor(ph
   override def receive: Receive = {
     case msg : WebParsedResponseMessage =>
       loadConfig(getPhase(msg))
+      val m = new Metric()
       if(shouldCapture(msg)){
         val data = AfthemResponseSerializer.serialize(msg,discardRequestHeaders,discardResponseHeaders)
         val properties = new BasicProperties.Builder().contentType("application/json").build()
         channel.basicPublish(exchangeName,routingKey, properties, data.getBytes())
       }
+      metricsLog.debug(m.toString())
   }
 
   override def loadConfig(phase: Phase): Unit = {
@@ -71,8 +73,10 @@ class RabbitSerializerActor(phaseId : String) extends AbstractSerializerActor(ph
 
   override def postStop(): Unit = {
     super.postStop()
-    channel.close()
-    connection.close()
+    if(channel != null)
+      channel.close()
+    if(connection != null)
+      connection.close()
   }
 
 }
