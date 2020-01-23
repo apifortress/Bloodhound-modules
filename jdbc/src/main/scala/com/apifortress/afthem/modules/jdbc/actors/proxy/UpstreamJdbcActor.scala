@@ -19,7 +19,7 @@ package com.apifortress.afthem.modules.jdbc.actors.proxy
 import java.sql.{Connection, DriverManager, ResultSet}
 import java.util.Properties
 
-import com.apifortress.afthem.{Parsers, ReqResUtil}
+import com.apifortress.afthem.{Metric, Parsers, ReqResUtil}
 import com.apifortress.afthem.actors.AbstractAfthemActor
 import com.apifortress.afthem.exceptions.AfthemFlowException
 import com.apifortress.afthem.messages.beans.{Header, HttpWrapper}
@@ -82,6 +82,7 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
     case msg : WebParsedRequestMessage =>
       loadConfig(msg)
       try {
+        val m = new Metric()
         val statement = conn.createStatement()
         statement.setMaxRows(maxRows)
         statement.closeOnCompletion()
@@ -102,6 +103,7 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
         val message = new WebParsedResponseMessage(wrapper, msg.request, msg.backend, msg.flow, msg.deferredResult,
                                                     msg.date, msg.meta)
         forward(message)
+        metricsLog.debug(m.toString())
       }catch {
         case e : Throwable => throw new AfthemFlowException(msg,e.getMessage)
       }
