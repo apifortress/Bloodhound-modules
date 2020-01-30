@@ -74,6 +74,7 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
       log.debug("Buffer is full. Saving items to MongoDB")
       insertBufferedDocuments
     }
+    client.close()
   }
 
   /**
@@ -113,12 +114,4 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
     super.initClient(phase)
   }
 
-  override def postStop(): Unit = {
-    super.postStop()
-    if(buffer.size > 0) {
-      log.debug("Buffer is full. Saving items to MongoDB")
-      insertManyDocuments(buffer)
-    }
-    client.close()
-  }
 }
