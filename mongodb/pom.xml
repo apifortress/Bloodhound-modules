@@ -6,7 +6,7 @@
 
     <groupId>com.apifortress.afthem.modules</groupId>
     <artifactId>mongodb</artifactId>
-    <version>1.1.0</version>
+    <version>1.2.0</version>
 
 
     <build>
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>com.apifortress</groupId>
             <artifactId>afthem</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.0</version>
             <scope>provided</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.mongodb.scala/mongo-scala-driver -->
