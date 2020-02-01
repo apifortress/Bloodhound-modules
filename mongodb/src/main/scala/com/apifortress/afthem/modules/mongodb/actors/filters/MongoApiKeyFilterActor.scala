@@ -18,6 +18,7 @@ package com.apifortress.afthem.modules.mongodb.actors.filters
 
 import com.apifortress.afthem.actors.filters.ApiKeyFilterActor
 import com.apifortress.afthem.config.{ApiKey, Phase}
+import com.apifortress.afthem.exceptions.AfthemSevereException
 import com.apifortress.afthem.messages.WebParsedRequestMessage
 import com.apifortress.afthem.modules.mongodb.actors.TMongoDBActor
 import com.mongodb.client.model.Filters
@@ -33,8 +34,12 @@ class MongoApiKeyFilterActor(phaseId : String) extends ApiKeyFilterActor(phaseId
 
   override def receive: Receive = {
     case msg: WebParsedRequestMessage =>
-      initClient(getPhase(msg))
-      super.receive(msg)
+      try {
+        initClient(getPhase(msg))
+        super.receive(msg)
+      }catch {
+        case e : Exception => throw new AfthemSevereException(msg,e.getMessage)
+      }
   }
 
   override def findKey(key: String, phase: Phase): Option[ApiKey] = {

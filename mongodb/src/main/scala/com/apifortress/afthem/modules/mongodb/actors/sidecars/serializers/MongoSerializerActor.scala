@@ -19,6 +19,7 @@ package com.apifortress.afthem.modules.mongodb.actors.sidecars.serializers
 import com.apifortress.afthem.AfthemResponseSerializer
 import com.apifortress.afthem.actors.sidecars.serializers.AbstractSerializerActor
 import com.apifortress.afthem.config.Phase
+import com.apifortress.afthem.exceptions.{AfthemFlowException, AfthemSevereException}
 import com.apifortress.afthem.messages.WebParsedResponseMessage
 import com.apifortress.afthem.modules.mongodb.actors.TMongoDBActor
 import org.bson.Document
@@ -49,22 +50,27 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
 
   override def receive: Receive = {
     case msg: WebParsedResponseMessage =>
-      val phase = getPhase(msg)
-      loadConfig(phase)
-      initClient(phase)
-      if(shouldCapture(msg)) {
-        val exportableObject = AfthemResponseSerializer.serialize(msg,discardRequestHeaders,discardResponseHeaders)
-        val document = Document.parse(exportableObject)
-        applyExtraFields(document)
-        if (bufferSize > 1)
-          buffer += document
-        if (bufferSize <= 1) {
-          log.debug("Inserting single document")
-          insertSingleDocument(document)
-        } else {
-          if (buffer.size >= bufferSize)
-            insertBufferedDocuments
+      try {
+        val phase = getPhase(msg)
+        loadConfig(phase)
+        initClient(phase)
+        if (shouldCapture(msg)) {
+          val exportableObject = AfthemResponseSerializer.serialize(msg, discardRequestHeaders, discardResponseHeaders)
+          val document = Document.parse(exportableObject)
+          applyExtraFields(document)
+          if (bufferSize > 1)
+            buffer += document
+          if (bufferSize <= 1) {
+            log.debug("Inserting single document")
+            insertSingleDocument(document)
+          } else {
+            if (buffer.size >= bufferSize)
+              insertBufferedDocuments
+          }
         }
+      }catch {
+        case e : Exception =>
+          throw new AfthemSevereException(msg,e.getMessage)
       }
   }
 
