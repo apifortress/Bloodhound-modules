@@ -16,14 +16,14 @@
   */
 package com.apifortress.afthem.modules.jdbc.actors.proxy
 
-import java.sql.{Connection, DriverManager, ResultSet}
+import java.sql._
 import java.util.Properties
 
 import com.apifortress.afthem.{Metric, Parsers, ReqResUtil}
 import com.apifortress.afthem.actors.AbstractAfthemActor
-import com.apifortress.afthem.exceptions.AfthemFlowException
+import com.apifortress.afthem.exceptions.{AfthemFlowException, AfthemSevereException}
 import com.apifortress.afthem.messages.beans.{Header, HttpWrapper}
-import com.apifortress.afthem.messages.{WebParsedRequestMessage, WebParsedResponseMessage}
+import com.apifortress.afthem.messages.{ExceptionMessage, WebParsedRequestMessage, WebParsedResponseMessage}
 
 import scala.collection.mutable
 
@@ -105,7 +105,15 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
         forward(message)
         metricsLog.debug(m.toString())
       }catch {
-        case e : Throwable => throw new AfthemFlowException(msg,e.getMessage)
+        case e : SQLSyntaxErrorException =>
+          val exceptionMessage = new ExceptionMessage(new AfthemFlowException(msg,e.getMessage),422, msg)
+          tellSidecars(exceptionMessage)
+          exceptionMessage.respond(ReqResUtil.MIME_JSON)
+        case e: SQLNonTransientException =>
+          throw new AfthemSevereException(msg,e.getMessage)
+        case e : Throwable =>
+          e.printStackTrace()
+          throw new AfthemFlowException(msg,e.getMessage)
       }
   }
 
