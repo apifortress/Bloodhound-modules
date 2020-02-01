@@ -110,10 +110,17 @@ class MongoAccessLoggerActor(phaseId : String) extends AbstractAfthemActor(phase
     bufferSize = phase.getConfigInt("buffer_size",-1)
   }
 
-  def evaluateAdditionalFields(document : Document, msg : BaseMessage) = {
+  /**
+    * Adds context to the logging document, such as the app_id, if present in the meta
+    * @param document the document
+    * @param msg the message
+    * @return the updated document
+    */
+  def evaluateAdditionalFields(document : Document, msg : BaseMessage) : Document = {
     val keyOption = msg.meta.get("key")
     if(keyOption.isDefined)
       document.put("app_id",keyOption.get.asInstanceOf[ApiKey].appId)
+    return document
   }
 
   override def postStop(): Unit = {
@@ -124,6 +131,10 @@ class MongoAccessLoggerActor(phaseId : String) extends AbstractAfthemActor(phase
     }
   }
 
+  /**
+    * Inserts the document
+    * @param document the document
+    */
   def insert(document : Document) : Unit = {
     if(bufferSize > 1) {
       buffer += document

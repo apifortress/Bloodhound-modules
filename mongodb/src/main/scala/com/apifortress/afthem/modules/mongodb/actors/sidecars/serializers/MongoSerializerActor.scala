@@ -19,7 +19,7 @@ package com.apifortress.afthem.modules.mongodb.actors.sidecars.serializers
 import com.apifortress.afthem.AfthemResponseSerializer
 import com.apifortress.afthem.actors.sidecars.serializers.AbstractSerializerActor
 import com.apifortress.afthem.config.Phase
-import com.apifortress.afthem.exceptions.{AfthemFlowException, AfthemSevereException}
+import com.apifortress.afthem.exceptions.AfthemSevereException
 import com.apifortress.afthem.messages.WebParsedResponseMessage
 import com.apifortress.afthem.modules.mongodb.actors.TMongoDBActor
 import org.bson.Document
@@ -95,7 +95,7 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
 
   /**
     * Applies extra fields to a document
-    * @param document
+    * @param document the document
     */
   def applyExtraFields(document : Document) = {
     if (extraFields.size > 0){
