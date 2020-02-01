@@ -80,8 +80,8 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
 
   override def receive: Receive = {
     case msg : WebParsedRequestMessage =>
-      loadConfig(msg)
       try {
+        loadConfig(msg)
         val m = new Metric()
         val statement = conn.createStatement()
         statement.setMaxRows(maxRows)
@@ -112,7 +112,6 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
         case e: SQLNonTransientException =>
           throw new AfthemSevereException(msg,e.getMessage)
         case e : Throwable =>
-          e.printStackTrace()
           throw new AfthemFlowException(msg,e.getMessage)
       }
   }
