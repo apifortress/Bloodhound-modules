@@ -88,6 +88,29 @@ Here are some examples of configuration documents
 
 ---
 
+## Proxy
+
+### UpstreamMongoActor
+
+Upstream connecting to a MongoDB database. The body of the request must be shaped into a JSON document that either
+represents a query, or a document to insert. 
+
+**class:** `com.apifortress.afthem.modules.mongodb.actors.proxy.UpstreamMongoActor`
+
+**sidecars**: yes
+
+**config:**
+* `uri`: the MongoDB URI
+* `database`: the name of the MongoDB database
+* `collection`: the name of the connection to be used
+* `max_documents` (default=100): a limiter on the number of returned documents. Overridden by header `x-limit-results`
+
+**headers:**
+* `x-op`: either "find" or "insert"
+* `x-limit-results` (optional): limits the number of results
+ 
+
+
 ## Filters
 
 ### MongoApiKeyFilterActor
