@@ -29,7 +29,7 @@ import org.bson.json.JsonParseException
 import org.mongodb.scala.{Completed, Observer}
 import org.mongodb.scala.bson.collection.immutable.Document
 
-object UpstreamMongoDBActor {
+object UpstreamMongoActor {
 
   val OPERATION_FIND = "find"
   val OPERATION_INSERT = "insert"
@@ -42,7 +42,7 @@ object UpstreamMongoDBActor {
   * Upstream connecting to a MongoDB database
   * @param phaseId the phase ID
   */
-class UpstreamMongoDBActor(override val phaseId: String) extends AbstractAfthemActor(phaseId) with TMongoDBActor {
+class UpstreamMongoActor(override val phaseId: String) extends AbstractAfthemActor(phaseId) with TMongoDBActor {
 
   /**
     * Max number of documents default
@@ -53,23 +53,23 @@ class UpstreamMongoDBActor(override val phaseId: String) extends AbstractAfthemA
     case msg: WebParsedRequestMessage =>
       try {
         initClient(getPhase(msg))
-        val limit = if (msg.request.containsHeader(UpstreamMongoDBActor.HEADER_LIMIT))
-                      msg.request.getHeader(UpstreamMongoDBActor.HEADER_LIMIT).toInt
+        val limit = if (msg.request.containsHeader(UpstreamMongoActor.HEADER_LIMIT))
+                      msg.request.getHeader(UpstreamMongoActor.HEADER_LIMIT).toInt
                     else
                       maxDocuments
 
-        val op = if (msg.request.containsHeader(UpstreamMongoDBActor.HEADER_OP))
-                      msg.request.getHeader(UpstreamMongoDBActor.HEADER_OP)
+        val op = if (msg.request.containsHeader(UpstreamMongoActor.HEADER_OP))
+                      msg.request.getHeader(UpstreamMongoActor.HEADER_OP)
                     else
-                      UpstreamMongoDBActor.OPERATION_FIND
+                      UpstreamMongoActor.OPERATION_FIND
 
         op match {
-          case UpstreamMongoDBActor.OPERATION_FIND =>
+          case UpstreamMongoActor.OPERATION_FIND =>
                 var query = collection.find(Document.apply(msg.request.getPayloadAsText()))
                 if (limit > -1)
                   query = query.limit(limit)
                 query.subscribe(new DocCollectorObserver(msg))
-          case UpstreamMongoDBActor.OPERATION_INSERT =>
+          case UpstreamMongoActor.OPERATION_INSERT =>
                 collection.insertOne(Document.apply(msg.request.getPayloadAsText())).subscribe(new UpdateObserver(msg))
         }
 
@@ -85,7 +85,7 @@ class UpstreamMongoDBActor(override val phaseId: String) extends AbstractAfthemA
 
   override def initClient(phase: Phase): Unit = {
     super.initClient(phase)
-    maxDocuments = phase.getConfigInt(UpstreamMongoDBActor.ATTR_MAX_DOCUMENTS,100)
+    maxDocuments = phase.getConfigInt(UpstreamMongoActor.ATTR_MAX_DOCUMENTS,100)
   }
 
   /**
