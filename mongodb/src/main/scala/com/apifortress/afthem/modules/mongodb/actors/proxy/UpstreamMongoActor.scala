@@ -26,13 +26,15 @@ import com.apifortress.afthem.modules.mongodb.actors.TMongoDBActor
 import org.bson
 import org.bson.BsonInvalidOperationException
 import org.bson.json.JsonParseException
-import org.mongodb.scala.{Completed, Observer}
 import org.mongodb.scala.bson.collection.immutable.Document
+import org.mongodb.scala.result.DeleteResult
+import org.mongodb.scala.{Completed, Observer}
 
 object UpstreamMongoActor {
 
   val OPERATION_FIND = "find"
   val OPERATION_INSERT = "insert"
+  val OPERATION_DELETE = "delete"
   val HEADER_LIMIT = "x-limit-results"
   val HEADER_OP = "x-op"
   val ATTR_MAX_DOCUMENTS = "max_documents"
@@ -70,7 +72,9 @@ class UpstreamMongoActor(override val phaseId: String) extends AbstractAfthemAct
                   query = query.limit(limit)
                 query.subscribe(new DocCollectorObserver(msg))
           case UpstreamMongoActor.OPERATION_INSERT =>
-                collection.insertOne(Document.apply(msg.request.getPayloadAsText())).subscribe(new UpdateObserver(msg))
+                collection.insertOne(Document(msg.request.getPayloadAsText())).subscribe(new UpdateObserver(msg))
+          case UpstreamMongoActor.OPERATION_DELETE =>
+                collection.deleteMany(Document(msg.request.getPayloadAsText())).subscribe(new DeleteObserver(msg))
         }
 
       }catch{
@@ -145,6 +149,24 @@ class UpstreamMongoActor(override val phaseId: String) extends AbstractAfthemAct
                                     msg.request.remoteIP,ReqResUtil.CHARSET_UTF8)
       val response = new WebParsedResponseMessage(wrapper,msg.request,msg.backend,msg.flow,
                                                   msg.deferredResult,msg.date,msg.meta)
+      forward(response)
+    }
+
+    override def onError(e: Throwable): Unit = {
+      new ExceptionMessage(e.asInstanceOf[Exception],ReqResUtil.STATUS_INTERNAL,msg).respond(ReqResUtil.MIME_JSON)
+    }
+
+    override def onComplete(): Unit = {}
+  }
+
+  class DeleteObserver(val msg: WebParsedRequestMessage) extends Observer[DeleteResult] {
+    override def onNext(result: DeleteResult): Unit = {
+      val wrapper = new HttpWrapper(msg.request.getURL(),ReqResUtil.STATUS_OK,msg.request.method,
+                                      List(new Header(ReqResUtil.HEADER_CONTENT_TYPE, ReqResUtil.MIME_JSON)),
+                                      s"""{"status":"ok", "deletedCount":${result.getDeletedCount}}""".getBytes,
+                                      msg.request.remoteIP,ReqResUtil.CHARSET_UTF8)
+      val response = new WebParsedResponseMessage(wrapper,msg.request,msg.backend,msg.flow,
+                                                     msg.deferredResult,msg.date,msg.meta)
       forward(response)
     }
 
