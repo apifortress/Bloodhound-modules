@@ -109,7 +109,7 @@ represents a query, or a document to insert.
 * `x-op`: either "find" or "insert"
 * `x-limit-results` (optional): limits the number of results
  
-
+**Multi-flow**: no
 
 ## Filters
 
@@ -130,6 +130,7 @@ This base actor loads the API keys from a YAML file.
 * `in`: either `query` (expecting the key in the query string) or `header` (expecting the key in the headers)
 * `name`: key of the field carrying the API key
 
+**Multi-flow**: no
 
 **Example document**
 ```json
@@ -172,3 +173,5 @@ MongoDB settings:
 * `uri`: the MongoDB URI
 * `database`: the name of the MongoDB database
 * `collection`: the name of the connection to be used
+
+**Multi-flow**: no
