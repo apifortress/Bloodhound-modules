@@ -129,6 +129,10 @@ class MongoAccessLoggerActor(phaseId : String) extends AbstractAfthemActor(phase
       log.debug("Buffer is full. Saving items to MongoDB")
       insertManyDocuments(buffer)
     }
+    if(client != null) {
+      log.debug("Stopping MongoDB client")
+      client.close()
+    }
   }
 
   /**

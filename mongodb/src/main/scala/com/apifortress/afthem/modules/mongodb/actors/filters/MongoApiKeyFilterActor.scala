@@ -50,9 +50,11 @@ class MongoApiKeyFilterActor(phaseId : String) extends ApiKeyFilterActor(phaseId
     return Some(new ApiKey(apiKey = document.getString("api_key"), appId = document.getString("app_id"), enabled = document.getBoolean("enabled")))
   }
 
-  override def postStop(): Unit = {
-    super.postStop()
-    client.close()
+  override def postStop() : Unit = {
+    if(client != null) {
+      log.debug("Stopping MongoDB client")
+      client.close()
+    }
   }
 
 }

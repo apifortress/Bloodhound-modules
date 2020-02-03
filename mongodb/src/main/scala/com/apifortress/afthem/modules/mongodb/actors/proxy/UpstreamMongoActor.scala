@@ -92,6 +92,13 @@ class UpstreamMongoActor(override val phaseId: String) extends AbstractAfthemAct
     maxDocuments = phase.getConfigInt(UpstreamMongoActor.ATTR_MAX_DOCUMENTS,100)
   }
 
+  override def postStop() : Unit = {
+    if(client != null) {
+      log.debug("Stopping MongoDB client")
+      client.close()
+    }
+  }
+
   /**
     * Observer collecting documents to send back
     * @param msg the request message

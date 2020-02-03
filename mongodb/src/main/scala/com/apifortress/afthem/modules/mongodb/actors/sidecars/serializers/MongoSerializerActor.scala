@@ -80,7 +80,10 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
       log.debug("Buffer is full. Saving items to MongoDB")
       insertBufferedDocuments
     }
-    client.close()
+    if(client != null) {
+      log.debug("Stopping MongoDB client")
+      client.close()
+    }
   }
 
   /**
