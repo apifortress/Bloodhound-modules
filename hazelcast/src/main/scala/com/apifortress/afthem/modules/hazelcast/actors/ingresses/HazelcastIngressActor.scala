@@ -65,34 +65,32 @@ class HazelcastIngressActor(phaseId : String) extends AbstractAfthemActor(phaseI
         log.debug(s"Registering Req and Res queues for `${name}")
         reqTopic = client.getTopic[HazelcastTransportMessage]("req-" + name)
         resTopic = client.getTopic[HazelcastTransportMessage]("res-" + name)
-        reqTopic.addMessageListener(new MessageListener[HazelcastTransportMessage] {
-          override def onMessage(hazelMessage: Message[HazelcastTransportMessage]): Unit = {
-            getLog.debug("Received a new task")
-            val afthemResult = new AfthemResult {
-              /**
-                * Replacing onSetResult so that when "send_back" sends a response, we're
-                * publishing that response to the resTopic
-                */
-              override def onSetResult() = {
-                getLog.debug("Got a response from sendback. Sending back")
-                resTopic.publish(new HazelcastTransportMessage(this.message.meta.get("__id").get.asInstanceOf[String],this.message.asInstanceOf[WebParsedResponseMessage].response))
-              }
+        reqTopic.addMessageListener((hazelMessage : Message[HazelcastTransportMessage]) => {
+          getLog.debug("Received a new task")
+          val afthemResult = new AfthemResult {
+            /**
+              * Replacing onSetResult so that when "send_back" sends a response, we're
+              * publishing that response to the resTopic
+              */
+            override def onSetResult() = {
+              getLog.debug("Got a response from sendback. Sending back")
+              resTopic.publish(new HazelcastTransportMessage(this.message.meta.get("__id").get.asInstanceOf[String],this.message.asInstanceOf[WebParsedResponseMessage].response))
             }
-            val hazelcastTransportMessage: HazelcastTransportMessage = hazelMessage.getMessageObject
-            // find a suitable backend for the inbound URL
-            val backendOption = Backends.instance.findByWrapper(hazelcastTransportMessage.wrapper)
-            // if one is found then we can proceed
-            if (backendOption.isDefined) {
-              val backend = backendOption.get
-              val flow = Flows.instance.getFlow(backend.flowId)
-              val request = new WebParsedRequestMessage(hazelMessage.getMessageObject.wrapper, backend, flow, afthemResult, new Date(), new ExpMap())
-              request.meta.put("__id", hazelMessage.getMessageObject.id)
-              if (backend.meta != null)
-                request.meta ++= backend.meta
-              request.meta.put("__start", System.nanoTime())
-              log.debug("Sending message to the request actor")
-              context.actorSelection("/user/" + msg.next) ! request
-            }
+          }
+          val hazelcastTransportMessage: HazelcastTransportMessage = hazelMessage.getMessageObject
+          // find a suitable backend for the inbound URL
+          val backendOption = Backends.instance.findByWrapper(hazelcastTransportMessage.wrapper)
+          // if one is found then we can proceed
+          if (backendOption.isDefined) {
+            val backend = backendOption.get
+            val flow = Flows.instance.getFlow(backend.flowId)
+            val request = new WebParsedRequestMessage(hazelMessage.getMessageObject.wrapper, backend, flow, afthemResult, new Date(), new ExpMap())
+            request.meta.put("__id", hazelMessage.getMessageObject.id)
+            if (backend.meta != null)
+              request.meta ++= backend.meta
+            request.meta.put("__start", System.nanoTime())
+            log.debug("Sending message to the request actor")
+            context.actorSelection("/user/" + msg.next) ! request
           }
         })
       } catch {

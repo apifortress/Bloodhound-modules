@@ -111,15 +111,13 @@ class UpstreamHazelcastActor(phaseId : String) extends AbstractAfthemActor(phase
       reqTopic = UpstreamHazelcastActor.getInstance().getTopic[HazelcastTransportMessage]("req-"+remoteId)
       resTopic = UpstreamHazelcastActor.getInstance().getTopic[HazelcastTransportMessage]("res-"+remoteId)
       initialized = true
-      resTopic.addMessageListener(new MessageListener[HazelcastTransportMessage] {
-        override def onMessage(message: Message[HazelcastTransportMessage]): Unit = {
+      resTopic.addMessageListener((message: Message[HazelcastTransportMessage]) => {
           getLog.debug("Response is ready. Forwarding to next phase")
           val transportMessage = message.getMessageObject
           val tmpMsg = UpstreamHazelcastActor.getMessageFromCache(transportMessage.id)
           if(tmpMsg != null)
             forward(new WebParsedResponseMessage(transportMessage.wrapper, tmpMsg.request, tmpMsg.backend,
               tmpMsg.flow, tmpMsg.deferredResult, tmpMsg.date, tmpMsg.meta))
-        }
       })
     }
   }
