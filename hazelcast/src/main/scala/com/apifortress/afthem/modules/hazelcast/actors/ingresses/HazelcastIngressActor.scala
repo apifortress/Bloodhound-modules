@@ -57,7 +57,8 @@ class HazelcastIngressActor(phaseId : String) extends AbstractAfthemActor(phaseI
         else {
           val cc = new ClientConfig
           cc.setInstanceName(name)
-          cc.addAddress(msg.getConfigString("server"))
+          cc.getNetworkConfig.addAddress(msg.getConfigString("server"))
+          cc.getNetworkConfig.setConnectionAttemptLimit(0)
           cc
         }
 

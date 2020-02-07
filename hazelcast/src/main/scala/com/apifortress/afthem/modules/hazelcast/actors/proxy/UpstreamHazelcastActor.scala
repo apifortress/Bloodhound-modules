@@ -104,6 +104,10 @@ class UpstreamHazelcastActor(phaseId : String) extends AbstractAfthemActor(phase
       reqTopic.publish(new HazelcastTransportMessage(msg.meta.get("__id").get.asInstanceOf[String],msg.request))
   }
 
+  /**
+    * Load the config and subscribe to queues
+    * @param phase the phase
+    */
   def loadConfig(phase : Phase): Unit = {
     if(!initialized) {
       val remoteId = phase.getConfigString("remote_id",null)
