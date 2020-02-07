@@ -89,9 +89,9 @@ class HazelcastIngressActor(phaseId : String) extends AbstractAfthemActor(phaseI
               * Replacing onSetResult so that when "send_back" sends a response, we're
               * publishing that response to the resTopic
               */
-            override def onSetResult() = {
+            override def onSetResult() : Unit = {
               getLog.debug("Got a response from sendback. Sending back")
-              resTopic.publish(new HazelcastTransportMessage(this.message.meta.get("__id").get.asInstanceOf[String],this.message.asInstanceOf[WebParsedResponseMessage].response))
+              resTopic.publish(HazelcastTransportMessage(this.message.meta("__id").asInstanceOf[String],this.message.asInstanceOf[WebParsedResponseMessage].response))
             }
           }
           val hazelcastTransportMessage: HazelcastTransportMessage = hazelMessage.getMessageObject

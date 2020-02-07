@@ -25,6 +25,7 @@ import com.apifortress.afthem.messages.{WebParsedRequestMessage, WebParsedRespon
 import com.apifortress.afthem.modules.hazelcast.messages.HazelcastTransportMessage
 import com.hazelcast.config.{Config, XmlConfigBuilder}
 import com.hazelcast.core._
+import org.ehcache.Cache
 
 /**
   * Companion object for UpstreamHazelcastActor
@@ -36,7 +37,7 @@ object UpstreamHazelcastActor {
     */
   var instance : HazelcastInstance = _
 
-  val messageCache = AfthemCache.cacheManager.getCache[String,WebParsedRequestMessage]("hazelcast", classOf[String],classOf[WebParsedRequestMessage])
+  val messageCache : Cache[String,WebParsedRequestMessage] = AfthemCache.cacheManager.getCache[String,WebParsedRequestMessage]("hazelcast", classOf[String],classOf[WebParsedRequestMessage])
 
   /**
     * Initializes the Hazelcast instance
@@ -52,7 +53,7 @@ object UpstreamHazelcastActor {
               else
                 new Config()
     instance = Hazelcast.newHazelcastInstance(cfg)
-    return instance
+    instance
   }
 
   /**
@@ -116,8 +117,8 @@ class UpstreamHazelcastActor(phaseId : String) extends AbstractAfthemActor(phase
     case msg : WebParsedRequestMessage =>
       loadConfig(getPhase(msg))
       log.debug("Publishing message to request topic")
-      UpstreamHazelcastActor.messageCache.put(msg.meta.get("__id").get.asInstanceOf[String],msg)
-      reqTopic.publish(new HazelcastTransportMessage(msg.meta.get("__id").get.asInstanceOf[String],msg.request))
+      UpstreamHazelcastActor.messageCache.put(msg.meta("__id").asInstanceOf[String],msg)
+      reqTopic.publish(HazelcastTransportMessage(msg.meta("__id").asInstanceOf[String],msg.request))
   }
 
   /**
