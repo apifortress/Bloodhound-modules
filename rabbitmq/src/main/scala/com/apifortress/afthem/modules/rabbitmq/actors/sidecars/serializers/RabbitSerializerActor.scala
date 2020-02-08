@@ -73,10 +73,14 @@ class RabbitSerializerActor(phaseId : String) extends AbstractSerializerActor(ph
 
   override def postStop(): Unit = {
     super.postStop()
-    if(channel != null)
+    if(channel != null) {
       channel.close()
-    if(connection != null)
+      channel = null
+    }
+    if(connection != null) {
       connection.close()
+      connection = null
+    }
   }
 
 }
