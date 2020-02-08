@@ -96,6 +96,7 @@ class UpstreamMongoActor(override val phaseId: String) extends AbstractAfthemAct
     if(client != null) {
       log.debug("Stopping MongoDB client")
       client.close()
+      client = null
     }
   }
 

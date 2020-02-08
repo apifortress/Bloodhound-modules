@@ -132,6 +132,7 @@ class MongoAccessLoggerActor(phaseId : String) extends AbstractAfthemActor(phase
     if(client != null) {
       log.debug("Stopping MongoDB client")
       client.close()
+      client = null
     }
   }
 

@@ -54,6 +54,7 @@ class MongoApiKeyFilterActor(phaseId : String) extends ApiKeyFilterActor(phaseId
     if(client != null) {
       log.debug("Stopping MongoDB client")
       client.close()
+      client = null
     }
   }
 

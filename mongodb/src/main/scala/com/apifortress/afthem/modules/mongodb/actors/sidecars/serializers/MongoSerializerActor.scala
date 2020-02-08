@@ -83,6 +83,7 @@ class MongoSerializerActor(phaseId : String) extends AbstractSerializerActor(pha
     if(client != null) {
       log.debug("Stopping MongoDB client")
       client.close()
+      client = null
     }
   }
 
