@@ -139,7 +139,9 @@ class UpstreamJdbcActor(phaseId : String) extends AbstractAfthemActor(phaseId: S
 
   override def postStop(): Unit = {
     super.postStop()
-    if(conn != null)
+    if(conn != null) {
       conn.close()
+      conn = null
+    }
   }
 }
