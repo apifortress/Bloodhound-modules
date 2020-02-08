@@ -137,8 +137,7 @@ class UpstreamHazelcastActor(phaseId : String) extends AbstractAfthemActor(phase
           val transportMessage = message.getMessageObject
           val tmpMsg = UpstreamHazelcastActor.getMessageFromCache(transportMessage.id)
           if(tmpMsg != null)
-            forward(new WebParsedResponseMessage(transportMessage.wrapper, tmpMsg.request, tmpMsg.backend,
-              tmpMsg.flow, tmpMsg.deferredResult, tmpMsg.date, tmpMsg.meta))
+            forward(new WebParsedResponseMessage(transportMessage.wrapper, tmpMsg))
       })
     }
   }
