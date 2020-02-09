@@ -61,6 +61,14 @@ Upstream connecting to a Redis database.
 }
 ```
 
+* **smembers**
+```json
+{
+  "key": "key"
+}
+```
+
+
 * **hset**
 ```json
 {

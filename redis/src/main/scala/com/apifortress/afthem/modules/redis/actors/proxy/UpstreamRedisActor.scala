@@ -1,6 +1,6 @@
 package com.apifortress.afthem.modules.redis.actors.proxy
 
-import com.apifortress.afthem.actors.AbstractAfthemActor
+import com.apifortress.afthem.actors.proxy.AbstractUpstreamActor
 import com.apifortress.afthem.config.Phase
 import com.apifortress.afthem.exceptions.{AfthemFlowException, AfthemSevereException}
 import com.apifortress.afthem.messages.beans.{Header, HttpWrapper}
@@ -10,7 +10,7 @@ import redis.clients.jedis.Jedis
 import redis.clients.jedis.exceptions.JedisDataException
 import redis.clients.jedis.params.SetParams
 
-class UpstreamRedisActor(phaseId : String) extends AbstractAfthemActor(phaseId) {
+class UpstreamRedisActor(phaseId : String) extends AbstractUpstreamActor(phaseId) {
 
   var connection : Jedis = _
 
@@ -18,6 +18,7 @@ class UpstreamRedisActor(phaseId : String) extends AbstractAfthemActor(phaseId) 
 
   override def receive: Receive = {
     case msg : WebParsedRequestMessage =>
+      logUpstreamMetrics(msg)
       try {
         loadConfig(getPhase(msg))
       }catch {
@@ -46,6 +47,9 @@ class UpstreamRedisActor(phaseId : String) extends AbstractAfthemActor(phaseId) 
             forward(new WebParsedResponseMessage(buildResponseWrapper(msg.request, data), msg))
           case "hset" =>
             connection.hset(inputData("key").toString, inputData("field").toString, inputData("value").toString)
+            forward(buildOkMessage(msg))
+          case "smembers" =>
+            val data = Parsers.serializeAsJsonByteArray(Map("value" -> connection.smembers(inputData("key").toString)))
             forward(buildOkMessage(msg))
           case "hget" =>
             val data = Parsers.serializeAsJsonByteArray(Map("value" -> connection.hget(inputData("key").toString, inputData("field").toString)))
