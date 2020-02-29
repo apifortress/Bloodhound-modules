@@ -19,12 +19,12 @@ package com.apifortress.afthem.modules.hazelcast.actors.ingresses
 import java.io.File
 import java.util.Date
 
-import com.apifortress.afthem.AfthemResult
+import com.apifortress.afthem.{AfthemResult, ResponseEntityUtil}
 import com.apifortress.afthem.actors.AbstractAfthemActor
 import com.apifortress.afthem.config.loaders.YamlConfigLoader
 import com.apifortress.afthem.config.{Backends, Flows, Ingress}
 import com.apifortress.afthem.exceptions.AfthemSevereException
-import com.apifortress.afthem.messages.beans.ExpMap
+import com.apifortress.afthem.messages.beans.{ExpMap, HttpWrapper}
 import com.apifortress.afthem.messages.{WebParsedRequestMessage, WebParsedResponseMessage}
 import com.apifortress.afthem.modules.hazelcast.messages.HazelcastTransportMessage
 import com.hazelcast.client.HazelcastClient
@@ -91,7 +91,17 @@ class HazelcastIngressActor(phaseId : String) extends AbstractAfthemActor(phaseI
               */
             override def onSetResult() : Unit = {
               getLog.debug("Got a response from sendback. Sending back")
-              resTopic.publish(HazelcastTransportMessage(this.message.meta("__id").asInstanceOf[String],this.message.asInstanceOf[WebParsedResponseMessage].response))
+              val wrapper : HttpWrapper =
+                this.message match {
+                  case m : WebParsedResponseMessage =>
+                      m.response
+                  case m : WebParsedRequestMessage =>
+                      new HttpWrapper(m.request.getURL(),this.getResult().getStatusCodeValue,
+                                      m.request.method,ResponseEntityUtil.toAfthemHeaders(this.getResult()),
+                                      this.getResult().getBody,m.request.remoteIP,m.request.characterEncoding)
+                }
+
+              resTopic.publish(HazelcastTransportMessage(this.message.meta("__id").asInstanceOf[String], wrapper))
             }
           }
           val hazelcastTransportMessage: HazelcastTransportMessage = hazelMessage.getMessageObject
