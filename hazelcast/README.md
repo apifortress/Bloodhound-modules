@@ -44,4 +44,15 @@ Configuration must be placed in the `implementers.yml` file.
 * `name`: the ID of the AFtheM Hazelcast client
 * `server`: the address of the AFtheM Hazelcast server
 
+Example:
+```yaml
+ingresses:
+  - id: hazelcast
+    class: com.apifortress.afthem.modules.hazelcast.actors.ingresses.HazelcastIngressActor
+    thread_pool: secondary
+    config: 
+      name: hazelclient1
+      server: afthem.example.com
+```
+
 **Note:** other Hazelcast settings can be placed in the `etc/<name>_hazelcastClient.xml` file.
