@@ -1,0 +1,31 @@
+swagger: '2.0'
+info:
+  version: '1.0'
+  title: test
+  description: foobar
+  contact: {}
+host: example.com
+schemes:
+  - https
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /foobar:
+    post:
+      parameters:
+        - name: a
+          in: query
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            type: object
+            properties:
+              foo:
+                type: string
+      responses:
+        200:
+          description: not cool
