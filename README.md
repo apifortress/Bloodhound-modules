@@ -1,6 +1,6 @@
 # Bloodhound Modules
 
-Bloodhound is a modular open source microgateway that simplifies the creation of complex flows. Visit the [Bloodhound GitHub repository](https://github.com/apifortress/afthem) for more info.
+Bloodhound is a modular open source microgateway that simplifies the creation of complex flows. Visit the [Bloodhound GitHub repository](https://github.com/apifortress/bloodhound) for more info.
 
 In addition to the default components already present in the software, other official pluggable modules are available in this repository.
 
