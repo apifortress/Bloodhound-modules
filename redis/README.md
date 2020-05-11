@@ -1,4 +1,4 @@
-# AFtheM - Redis module
+# Bloodhound - Redis module
 
 The module implements a number of functions requiring interaction with the Redis data store.
 

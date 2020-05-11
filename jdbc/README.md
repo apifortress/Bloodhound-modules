@@ -1,4 +1,4 @@
-# AFtheM - JDBC Module
+# Bloodhound - JDBC Module
 
 The module implements multiple actors involving the connection to JDBC databases. 
 

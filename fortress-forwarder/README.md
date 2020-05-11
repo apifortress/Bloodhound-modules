@@ -1,4 +1,4 @@
-# AFtheM - Fortress Forwarder module
+# Bloodhound - Fortress Forwarder module
 
 Actors to serialize API conversations and send them using HTTP calls. Two formats are supported.
 
@@ -6,7 +6,7 @@ Actors to serialize API conversations and send them using HTTP calls. Two format
 
 ### FortressForwarderSerializerActor
 
-Serializes the API conversation using the default AFtheM implementation and forwards the result via HTTP. While the
+Serializes the API conversation using the default Bloodhound implementation and forwards the result via HTTP. While the
 module has been originally designed to work with the API Fortress suite, it can easily be used with any other system.
 
 **class:** `com.apifortress.afthem.modules.fortressforwarders.actors.sidecars.serializers.FortressForwarderSerializerActor`

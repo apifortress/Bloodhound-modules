@@ -1,4 +1,4 @@
-# AFtheM - MongoDB module
+# Bloodhound - MongoDB module
 
 The module implements a number of functions requiring interaction with the MongoDB database.
 

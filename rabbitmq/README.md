@@ -1,4 +1,4 @@
-# AFtheM - RabbitMQ module
+# Bloodhound - RabbitMQ module
 
 The module implements an actor that connects to RabbitMQ and publishes the JSON-marshaled API conversation to a
 RabbitMQ exchange.

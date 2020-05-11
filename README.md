@@ -1,10 +1,10 @@
-# AFtheM Modules
+# Bloodhound Modules
 
-AFtheM is a modular open source microgateway that simplifies the creation of complex flows. Visit the [AFtheM GitHub repository](https://github.com/apifortress/afthem) for more info.
+Bloodhound is a modular open source microgateway that simplifies the creation of complex flows. Visit the [Bloodhound GitHub repository](https://github.com/apifortress/afthem) for more info.
 
 In addition to the default components already present in the software, other official pluggable modules are available in this repository.
 
-All these modules are packaged in the AFtheM Docker images that can be found on [Docker Hub](https://hub.docker.com/r/apifortress/afthem).
+All these modules are packaged in the Bloodhound Docker images that can be found on [Docker Hub](https://hub.docker.com/r/apifortress/afthem).
 
 ## Fortress Forwarder
 
@@ -20,7 +20,7 @@ This module serves four purposes purposes:
 
 * Use MongoDB as upstream and make it available using API calls
 
-* Store and use AFtheM configuration files in MongoDB
+* Store and use Bloodhound configuration files in MongoDB
 
 * Store access logs in MongoDB
 
