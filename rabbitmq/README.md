@@ -28,3 +28,4 @@ RabbitMQ settings:
 * `uri`: a RabbitMQ URI, as in `amqp://username:password@host/virtualHost`
 * `exchange`: the ID of the RabbitMQ exchange
 * `routing_key`: the routing key to be applied to the message (empty string is the default)
+* `ttl`: time-to-live in milliseconds of the message. default: -1, no ttl

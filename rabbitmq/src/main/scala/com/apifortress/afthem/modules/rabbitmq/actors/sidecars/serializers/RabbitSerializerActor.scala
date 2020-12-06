@@ -46,6 +46,8 @@ class RabbitSerializerActor(phaseId : String) extends AbstractSerializerActor(ph
     */
   var routingKey : String = null
 
+  var ttl : Int = -1
+
 
   override def receive: Receive = {
     case msg : WebParsedResponseMessage =>
@@ -53,7 +55,10 @@ class RabbitSerializerActor(phaseId : String) extends AbstractSerializerActor(ph
       val m = new Metric()
       if(shouldCapture(msg)){
         val data = AfthemResponseSerializer.serialize(msg,discardRequestHeaders,discardResponseHeaders)
-        val properties = new BasicProperties.Builder().contentType("application/json").build()
+        var builder = new BasicProperties.Builder().contentType("application/json")
+        if (ttl > -1)
+          builder = builder.expiration(String.valueOf(ttl))
+        val properties = builder.build()
         channel.basicPublish(exchangeName,routingKey, properties, data.getBytes())
       }
       metricsLog.debug(m.toString())
@@ -69,6 +74,7 @@ class RabbitSerializerActor(phaseId : String) extends AbstractSerializerActor(ph
     }
     exchangeName = phase.getConfigString("exchange", null)
     routingKey = phase.getConfigString("routing_key","")
+    ttl = phase.getConfigInt("ttl",-1)
   }
 
   override def postStop(): Unit = {
