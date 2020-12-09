@@ -22,6 +22,8 @@ import com.apifortress.afthem.config.Phase
 import com.apifortress.afthem.messages.WebParsedResponseMessage
 import com.rabbitmq.client.AMQP.BasicProperties
 import com.rabbitmq.client.{Channel, Connection, ConnectionFactory}
+import collection.JavaConverters._
+
 
 /**
   * Serializes the API conversation in the API Fortress-compatible format and publish it to a RabbitMQ exchange
@@ -46,6 +48,8 @@ class RabbitSerializerActor(phaseId : String) extends AbstractSerializerActor(ph
     */
   var routingKey : String = null
 
+  var headers : Map[String,Any] = null
+
   var ttl : Int = -1
 
 
@@ -58,6 +62,11 @@ class RabbitSerializerActor(phaseId : String) extends AbstractSerializerActor(ph
         var builder = new BasicProperties.Builder().contentType("application/json")
         if (ttl > -1)
           builder = builder.expiration(String.valueOf(ttl))
+        if (headers != null) {
+          val data = headers.map(it => (it._1->it._2.asInstanceOf[AnyRef])).asJava
+          builder = builder.headers(data)
+        }
+
         val properties = builder.build()
         channel.basicPublish(exchangeName,routingKey, properties, data.getBytes())
       }
@@ -74,6 +83,7 @@ class RabbitSerializerActor(phaseId : String) extends AbstractSerializerActor(ph
     }
     exchangeName = phase.getConfigString("exchange", null)
     routingKey = phase.getConfigString("routing_key","")
+    headers = phase.getConfigMap("headers")
     ttl = phase.getConfigInt("ttl",-1)
   }
 
